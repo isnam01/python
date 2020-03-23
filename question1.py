@@ -25,7 +25,7 @@ subnews_url=[]
 # Open the URL as Browser, not as python urllib
 page=urllib.request.Request(url,headers={'User-Agent': 'Mozilla/5.0'}) 
 infile=urllib.request.urlopen(page).read()
-soup = BeautifulSoup(infile,'lxml'))
+soup = BeautifulSoup(infile,'lxml')
 section = soup.find_all("div", {"class": "xrnccd F6Welf R7GTQ keNKEd j7vNaf"})    #finding all div class with mentioned class
 
 for a in section:
@@ -35,15 +35,16 @@ for a in section:
     article.download() #preprocessinf the news
     article.parse()  
     article.nlp() 
-    #splitting the text on the basis of '.'
-    for lines in article.text.split('.'): 
-          if 'surge' in lines or 'IPO' in lines or 'aquisitions' in lines or 'initial public offering' in lines:     #Searching the words
-            print(lines) #printing the lines having searched text
     #appending title of article
     news_title.append(article.title)    
     news_summary.append(article.summary)
     news_time.append(article.publish_date)
     news_url.append(article.url) 
+    article=article.text.replace('\n','')
+    #splitting the text into lines
+    for lines in nltk.sent_tokenize(article): 
+          if 'surge' in lines or 'IPO' in lines or 'aquisitions' in lines or 'initial public offering' in lines:     #Searching the words
+            print(lines) #printing the lines having searched text
     #finding one div tag with class as SbNwzf
     j=a.find("div",{"class":"SbNwzf"})    
 
@@ -55,13 +56,15 @@ for a in section:
         subarticle.download() 
         subarticle.parse()   
         subarticle.nlp() 
-        for lines in subarticle.text.split('.'):
-          if 'surge' in lines or 'IPO' in lines or 'aquisitions' in lines or 'initial public offering' in lines:
-            print(lines)
         subnews_title.append(subarticle.title) 
         subnews_summary.append(subarticle.summary)
         subnews_time.append(str(subarticle.publish_date))
         subnews_url.append(subarticle.url)
+        subarticle=subarticle.text.replace('\n','')
+        #splitting the text into lines
+        for lines in nltk.sent_tokenize(subarticle): 
+          if 'surge' in lines or 'IPO' in lines or 'aquisitions' in lines or 'initial public offering' in lines:     #Searching the words
+            print(lines) #printing the lines having searched text
     time.sleep(1)
 
 #creating dictionary
