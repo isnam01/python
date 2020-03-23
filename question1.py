@@ -1,91 +1,93 @@
+'''libraries to be installed for using this script:
+*   bs4
+*   requests
+*   newspaper3k
+*   nltk
+*   time
+*   pandas
+#Installing Library'''
 !pip3 install newspaper3k
 
-import urllib.request
+#importing Libraries
 from bs4 import BeautifulSoup
+import requests
 from newspaper import Article
-import csv
 import nltk
 import time
-import pandas as pd
-from datetime import datetime
 nltk.download('punkt')
+import pandas as pd
 
-def keyword_search(article):
+#Search function
+def keywords_search(article):
   article=article.replace('\n',' ')
-  for lines in nltk.tokenize.sent_tokenize(article):
-    if 'surge' in lines or 'IPO' in lines or 'aquisitions' in lines or 'initial public offering' in lines:     #Searching the words
-            print(lines) #printing the lines having searched text
+  for sentence in nltk.tokenize.sent_tokenize(article):
+    if 'surge' in sentence or  'acquisitions' in sentence or 'IPO' in sentence or :
+      print(sentence)
 
 
+#fetching html of page 
+webdata=requests.get("https://news.google.com/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pKVGlnQVAB?hl=en-IN&gl=IN&ceid=IN%3Aen")
+htmldata=webdata.text
+soup=BeautifulSoup(htmldata,'lxml')
 
-url = "https://news.google.com/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pKVGlnQVAB?hl=en-IN&gl=IN&ceid=IN%3Aen"
-
+#declaring list variables
 news_title=[]
-news_time=[]
+news_link=[]
 news_summary=[]
-news_url=[]
-
+news_date=[]
 subnews_title=[]
-subnews_time=[]
+subnews_link=[]
 subnews_summary=[]
-subnews_url=[]
-
-# Open the URL as Browser, not as python urllib
-page=urllib.request.Request(url,headers={'User-Agent': 'Mozilla/5.0'}) 
-infile=urllib.request.urlopen(page).read()
-soup = BeautifulSoup(infile,'lxml')
-section = soup.find_all("div", {"class": "xrnccd F6Welf R7GTQ keNKEd j7vNaf"})    #finding all div class with mentioned class
+subnews_date=[]
 
 
-for a in section:
-    b=a.find('a',href=True)
-    toi_article = "https://news.google.com"+b['href'] # en for English
-    article=Article(str(toi_article))
-    article.download() #preprocessinf the news
-    article.parse()  
-    article.nlp() 
-    #splitting the text into lines
-    #appending title of article
-    news_title.append(article.title)    
-    news_summary.append(article.summary)
-    news_time.append(article.publish_date)
-    news_url.append(article.url) 
-    keyword_search(article.text)      
-    #finding one div tag with class as SbNwzf
-    j=a.find("div",{"class":"SbNwzf"})    
-    #finding all a tag with the mentioned class    
-    for k in j.find_all("a",{"class":"VDXfz"}):       
-        toi_subarticle = "https://news.google.com"+k['href'] # en for English 
-        subarticle=Article(str(toi_subarticle))
-        #preprocessing the news
-        subarticle.download() 
-        subarticle.parse()   
-        subarticle.nlp() 
-        subnews_title.append(subarticle.title) 
-        subnews_summary.append(subarticle.summary)
-        subnews_time.append(str(subarticle.publish_date))
-        subnews_url.append(subarticle.url)
-        keyword_search(subarticle.text)     
-    time.sleep(1)
+a = soup.find("div", attrs={'class':'fe4pJf'})    #finding a div tag with mentioned class
+list=a.find_all("div", attrs={'class':'NiLAwe'}) #finding all div tag with mentioned class
 
-#creating dictionary
-news_data = {'Title':news_title,            
-        'Summary':news_summary,
-        'Time':news_time,
-        'URL':news_url}
+for i in list:
+  k=0 #used to identify if it is a main news or subnews
+  
+  for j in i.find_all('a',attrs={'class':'DY5T1d'}):      #finding a tag with mentioned class
+    
+    url="https://news.google.com"+j['href'][1:]           #gets all the url of the article on that page
+    
+    if(requests.get(url).status_code==200):       #checking if url is correct or not
+      
+      article = Article("https://news.google.com"+j['href'][1:], language="en")
+      article.download()
+      article.parse() 
+      article.nlp()
 
-#coverting the dictionary to pandas dataframe        
-News_table = pd.DataFrame(news_data)
+      title=j.title #Use same title as google news 
+      summary=article.summary
+      date=article.publish_date
 
-subnews_data = {'Title':subnews_title,
-        'Summary':subnews_summary,
-        'Time':subnews_time,
-        'URL':news_url}
-Subnews_table = pd.DataFrame(subnews_data)
+      print("Title: "+title+"\nSearching keywords:")  #printing lines containing keywords.
+      keywords_search(article.text)
+      
+      if(k==0):   #main news index
+        news_title.append(title)
+        news_summary.append(summary)
+        news_url.append(url)
+        news_date.append(date)
+      else:       #subnews 
+        subnews_title.append(title)
+        subnews_summary.append(summary)
+        subnews_url.append(url)
+        subnews_date.append(date)
+      k+=1    
+      time.sleep(3)
+  ln+=1
 
-#printing head of the table
+      
+
+#making tables using panda
+news_table=pd.DataFrame({'Main news title':news_title,'Summary':news_summary,'URL':news_url,'Date and Time':news_date})
+subnews_table=pd.DataFrame({'Sub news title':subnews_title,'Summary':subnews_summary,'URL':subnews_url,'Date and Time':subnews_date})
+
 print("Head of News table")
-News_table.head()
+news_table.head()
 
-print("Head of Subnews table")
-Subnews_table.head()
+
+print("Head of Sub News table")
+subnews_table.head()
