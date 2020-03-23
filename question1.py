@@ -10,6 +10,14 @@ import pandas as pd
 from datetime import datetime
 nltk.download('punkt')
 
+def keyword_search(article):
+  article=article.replace('\n',' ')
+  for lines in nltk.tokenize.sent_tokenize(article):
+    if 'surge' in lines or 'IPO' in lines or 'aquisitions' in lines or 'initial public offering' in lines:     #Searching the words
+            print(lines) #printing the lines having searched text
+
+
+
 url = "https://news.google.com/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pKVGlnQVAB?hl=en-IN&gl=IN&ceid=IN%3Aen"
 
 news_title=[]
@@ -28,6 +36,7 @@ infile=urllib.request.urlopen(page).read()
 soup = BeautifulSoup(infile,'lxml')
 section = soup.find_all("div", {"class": "xrnccd F6Welf R7GTQ keNKEd j7vNaf"})    #finding all div class with mentioned class
 
+
 for a in section:
     b=a.find('a',href=True)
     toi_article = "https://news.google.com"+b['href'] # en for English
@@ -35,19 +44,15 @@ for a in section:
     article.download() #preprocessinf the news
     article.parse()  
     article.nlp() 
+    #splitting the text into lines
     #appending title of article
     news_title.append(article.title)    
     news_summary.append(article.summary)
     news_time.append(article.publish_date)
     news_url.append(article.url) 
-    article=article.text.replace('\n','')
-    #splitting the text into lines
-    for lines in nltk.sent_tokenize(article): 
-          if 'surge' in lines or 'IPO' in lines or 'aquisitions' in lines or 'initial public offering' in lines:     #Searching the words
-            print(lines) #printing the lines having searched text
+    keyword_search(article.text)      
     #finding one div tag with class as SbNwzf
     j=a.find("div",{"class":"SbNwzf"})    
-
     #finding all a tag with the mentioned class    
     for k in j.find_all("a",{"class":"VDXfz"}):       
         toi_subarticle = "https://news.google.com"+k['href'] # en for English 
@@ -60,11 +65,7 @@ for a in section:
         subnews_summary.append(subarticle.summary)
         subnews_time.append(str(subarticle.publish_date))
         subnews_url.append(subarticle.url)
-        subarticle=subarticle.text.replace('\n','')
-        #splitting the text into lines
-        for lines in nltk.sent_tokenize(subarticle): 
-          if 'surge' in lines or 'IPO' in lines or 'aquisitions' in lines or 'initial public offering' in lines:     #Searching the words
-            print(lines) #printing the lines having searched text
+        keyword_search(subarticle.text)     
     time.sleep(1)
 
 #creating dictionary
