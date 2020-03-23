@@ -20,9 +20,9 @@ import pandas as pd
 #Search function
 def keywords_search(article):
   article=article.replace('\n',' ')
-  for sentence in nltk.tokenize.sent_tokenize(article):
-    if 'surge' in sentence or  'acquisitions' in sentence or 'IPO' in sentence or :
-      print(sentence)
+  for lines in nltk.tokenize.sent_tokenize(article):
+    if 'surge' in lines or  'acquisitions' in lines or 'IPO' in lines or 'initial public offering' in lines :
+      print(lines)
 
 
 #fetching html of page 
@@ -40,17 +40,13 @@ subnews_link=[]
 subnews_summary=[]
 subnews_date=[]
 
-
 a = soup.find("div", attrs={'class':'fe4pJf'})    #finding a div tag with mentioned class
 list=a.find_all("div", attrs={'class':'NiLAwe'}) #finding all div tag with mentioned class
 
 for i in list:
   k=0 #used to identify if it is a main news or subnews
-  
-  for j in i.find_all('a',attrs={'class':'DY5T1d'}):      #finding a tag with mentioned class
-    
+   for j in i.find_all('a',attrs={'class':'DY5T1d'}):      #finding a tag with mentioned class
     url="https://news.google.com"+j['href'][1:]           #gets all the url of the article on that page
-    
     if(requests.get(url).status_code==200):       #checking if url is correct or not
       
       article = Article("https://news.google.com"+j['href'][1:], language="en")
@@ -76,10 +72,7 @@ for i in list:
         subnews_url.append(url)
         subnews_date.append(date)
       k+=1    
-      time.sleep(3)
-  ln+=1
-
-      
+      time.sleep(3)      
 
 #making tables using panda
 news_table=pd.DataFrame({'Main news title':news_title,'Summary':news_summary,'URL':news_url,'Date and Time':news_date})
@@ -87,7 +80,5 @@ subnews_table=pd.DataFrame({'Sub news title':subnews_title,'Summary':subnews_sum
 
 print("Head of News table")
 news_table.head()
-
-
 print("Head of Sub News table")
 subnews_table.head()
